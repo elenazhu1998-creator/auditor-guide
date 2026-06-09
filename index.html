@@ -141,7 +141,7 @@ function OverviewSection() {
         </table>
       </div>
       <SectionTitle sub="内审员最需要 AI 帮助的 5 个核心场景">5 大核心功能</SectionTitle>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16, marginBottom: 28 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
         {[
           { num: "01", title: "生成审核问题清单", desc: "输入被审核部门和条款，AI 自动生成 10+ 条针对性问题，并告诉你要查哪些文件和记录", color: "#2266FF" },
           { num: "02", title: "条款通俗解释", desc: "把复杂的 ISO/RBA 条款翻译成日常工作语言，告诉你实际要查什么，如何判断是否符合", color: "#00E5D1" },
@@ -155,36 +155,6 @@ function OverviewSection() {
             <div style={{ fontFamily: "Arial", fontSize: 14, color: "#aaa", lineHeight: 1.65 }}>{f.desc}</div>
           </div>
         ))}
-      </div>
-      <SectionTitle sub="使用 AI 前后的时间对比">效率对比</SectionTitle>
-      <div style={{ overflowX: "auto" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontFamily: "Arial", fontSize: 15 }}>
-          <thead>
-            <tr style={{ background: "#1a1a1a" }}>
-              {["任务", "传统方式", "使用 AI", "节省时间"].map(h => (
-                <th key={h} style={{ padding: "12px 18px", color: "#99FFFF", fontWeight: 700, textAlign: "left", borderBottom: "2px solid #2266FF", fontSize: 14 }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {[
-              { task: "条款匹配", trad: "15-20 分钟", ai: "1-2 分钟", save: "90%" },
-              { task: "发现陈述撰写", trad: "10-15 分钟", ai: "1 分钟", save: "93%" },
-              { task: "法律法规查询", trad: "20-30 分钟", ai: "2 分钟", save: "93%" },
-              { task: "PPT 报告制作", trad: "15-20 分钟", ai: "30 秒", save: "97%" },
-              { task: "单个发现总计", trad: "60-85 分钟", ai: "5 分钟", save: "94%", total: true },
-            ].map((r, i) => (
-              <tr key={i} style={{ background: r.total ? "#0d2a0d" : "#131314", borderBottom: "1px solid #2a2a2a" }}>
-                <td style={{ padding: "12px 18px", color: r.total ? "#00E5D1" : "#ccc", fontWeight: r.total ? 700 : 400 }}>{r.task}</td>
-                <td style={{ padding: "12px 18px", color: "#82828B" }}>{r.trad}</td>
-                <td style={{ padding: "12px 18px", color: r.total ? "#00E5D1" : "#ccc", fontWeight: r.total ? 700 : 400 }}>{r.ai}</td>
-                <td style={{ padding: "12px 18px" }}>
-                  <span style={{ background: "#003d1a", border: "1px solid #00E5D1", color: "#00E5D1", borderRadius: 6, padding: "2px 10px", fontWeight: 700, fontSize: 14 }}>{r.save}</span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
       </div>
     </div>
   );
@@ -237,7 +207,7 @@ function BeforeSection() {
 3. 如何判断是否符合要求
 4. 常见的不符合项案例`} />
       <SectionTitle sub="客观证据写得好，审核发现才有说服力">客观证据撰写要点</SectionTitle>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 24 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
         <div style={{ background: "#0d2a0d", border: "1px solid #00E5D1", borderRadius: 12, padding: "18px 20px" }}>
           <div style={{ fontFamily: "Arial", fontWeight: 700, fontSize: 15, color: "#00E5D1", marginBottom: 12 }}>好的客观证据</div>
           {["包含时间、地点、涉及人员", "描述具体问题，可验证", "中英文均可，AI 自动处理翻译", "基于实际观察、记录、文件"].map((t, i) => (
