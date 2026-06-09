@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>内审员 AI 助手使用指南</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#000;--bg-card:#131314;--card:#1F1F1F;--border:#2a2a2a;--border-hi:#3A3A3A;--fg:#FAFAFA;--muted:#AFB5BE;--dim:#737373;--blue:#2563EB;--blue-b:#2168FD;--blue-light:#93C5FD;--teal-light:#3AE4C9;--green:#4ADE80;--grad:linear-gradient(90deg,#2168FD 0%,#1E71FA 22%,#37B1D3 55%,#39D6CB 78%,#3AE4C9 100%);--grad-d:linear-gradient(135deg,#2168FD 0%,#37B1D3 50%,#3AE4C9 100%)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Manrope',system-ui,sans-serif;background:var(--bg);color:var(--fg);-webkit-font-smoothing:antialiased}
+.gt{background:var(--grad-d);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.f{opacity:0;transform:translateY(14px);transition:opacity .55s ease,transform .55s ease}
+.f.v{opacity:1;transform:none}
+.f.d1{transition-delay:.07s}.f.d2{transition-delay:.14s}.f.d3{transition-delay:.21s}.f.d4{transition-delay:.28s}.f.d5{transition-delay:.35s}.f.d6{transition-delay:.42s}
+</style>
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script>tailwind.config={darkMode:"class",theme:{extend:{fontFamily:{manrope:["Manrope","system-ui","sans-serif"]}}}};</script>
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script>
+window.exports={};
+window.module={exports:window.exports};
+var __m={"react":window.React,"react-dom":window.ReactDOM,"react-dom/client":window.ReactDOM};
+var __noop=function(){return null};
+var __fb=new Proxy({},{get:function(_,p){return p==="__esModule"?true:__noop}});
+window.require=function(n){return __m[n]||__fb};
+__m["/utils/slide-images"]={
+  searchImage:function(){return Promise.resolve(null);},
+  generateImage:function(){return Promise.resolve(null);},
+  imageToBase64:function(u){
+    if(!u)return Promise.resolve(null);
+    if(u.startsWith("image/")||u.startsWith("data:image/"))return Promise.resolve(u.replace(/^data:/,""));
+    return fetch(u).then(function(r){return r.blob()}).then(function(b){
+      return new Promise(function(res){var rd=new FileReader();rd.onloadend=function(){res(rd.result?rd.result.replace(/^data:/,""):null)};rd.onerror=function(){res(null)};rd.readAsDataURL(b)})},
+    function(){return null});
+  }
+};
+</script>
+</head>
+<body>
+
+<div id="root"></div>
+<script type="text/babel" data-presets="env,react,typescript">
+import { useState } from "react";
+
+const accentGrad = "linear-gradient(90deg, #2266FF, #00E5D1)";
+
+function Tag({ children, color }) {
+  const colors = {
+    blue: { bg: "#0d2a5e", border: "#2266FF", text: "#99FFFF" },
+    green: { bg: "#003d35", border: "#00E5D1", text: "#00E5D1" },
+    purple: { bg: "#1e0a4a", border: "#6423FF", text: "#c9a8ff" },
+    orange: { bg: "#3d2000", border: "#FCA91A", text: "#FCA91A" },
+  };
+  const c = colors[color] || colors.blue;
+  return (
+    <span style={{ background: c.bg, border: `1px solid ${c.border}`, color: c.text, borderRadius: 6, padding: "2px 10px", fontSize: 13, fontWeight: 700, fontFamily: "Arial", display: "inline-block" }}>
+      {children}
+    </span>
+  );
+}
+
+function SectionTitle({ children, sub }) {
+  return (
+    <div style={{ marginBottom: 28 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: sub ? 8 : 0 }}>
+        <div style={{ width: 4, height: 28, borderRadius: 2, background: accentGrad, flexShrink: 0 }} />
+        <h2 style={{ fontFamily: "Arial", fontWeight: 700, fontSize: 22, color: "#ffffff", margin: 0 }}>{children}</h2>
+      </div>
+      {sub && <p style={{ fontFamily: "Arial", fontSize: 15, color: "#82828B", margin: "6px 0 0 16px", lineHeight: 1.6 }}>{sub}</p>}
+    </div>
+  );
+}
+
+function PromptBox({ title, prompt, tag, tagColor }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <div style={{ background: "#1F1F1F", border: "1px solid #2a2a2a", borderRadius: 12, marginBottom: 20, overflow: "hidden" }}>
+      <div style={{ padding: "14px 20px 10px 20px", display: "flex", alignItems: "center", gap: 10, borderBottom: "1px solid #2a2a2a", flexWrap: "wrap" }}>
+        <span style={{ fontFamily: "Arial", fontWeight: 700, fontSize: 16, color: "#fff", flex: 1 }}>{title}</span>
+        {tag && <Tag color={tagColor || "blue"}>{tag}</Tag>}
+        <button
+          onClick={() => { navigator.clipboard && navigator.clipboard.writeText(prompt); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
+          style={{ background: copied ? "#003d35" : "#0d1f3c", border: `1px solid ${copied ? "#00E5D1" : "#2266FF"}`, color: copied ? "#00E5D1" : "#99FFFF", borderRadius: 6, padding: "4px 14px", fontSize: 13, fontFamily: "Arial", cursor: "pointer", fontWeight: 600 }}>
+          {copied ? "✓ 已复制" : "复制"}
+        </button>
+      </div>
+      <pre style={{ margin: 0, padding: "16px 20px", fontFamily: "Arial", fontSize: 14, color: "#cccccc", whiteSpace: "pre-wrap", lineHeight: 1.7 }}>{prompt}</pre>
+    </div>
+  );
+}
+
+function ChatBubble({ role, text, isAi }) {
+  return (
+    <div style={{ display: "flex", gap: 12, marginBottom: 16, flexDirection: isAi ? "row" : "row-reverse" }}>
+      <div style={{ width: 36, height: 36, borderRadius: "50%", background: isAi ? accentGrad : "#333", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "Arial", fontWeight: 700, fontSize: 13, color: isAi ? "#000" : "#fff", flexShrink: 0 }}>
+        {isAi ? "AI" : "我"}
+      </div>
+      <div style={{ maxWidth: "80%", background: isAi ? "#1a2a1a" : "#1a1a2a", border: `1px solid ${isAi ? "#00E5D1" : "#2266FF"}`, borderRadius: isAi ? "4px 12px 12px 12px" : "12px 4px 12px 12px", padding: "12px 16px" }}>
+        <div style={{ fontFamily: "Arial", fontWeight: 700, fontSize: 13, color: isAi ? "#00E5D1" : "#99FFFF", marginBottom: 6 }}>{role}</div>
+        <div style={{ fontFamily: "Arial", fontSize: 15, color: "#cccccc", lineHeight: 1.65, whiteSpace: "pre-wrap" }}>{text}</div>
+      </div>
+    </div>
+  );
+}
+
+function OverviewSection() {
+  return (
+    <div>
+      <SectionTitle sub="了解 AI 助手能为内审员做什么">功能概览</SectionTitle>
+      <div style={{ background: "#1F1F1F", border: "1px solid #2266FF", borderRadius: 12, padding: "20px 24px", marginBottom: 28 }}>
+        <div style={{ fontFamily: "Arial", fontWeight: 700, fontSize: 17, color: "#99FFFF", marginBottom: 12 }}>什么是 ATLAS IMS AI 助手？</div>
+        <div style={{ fontFamily: "Arial", fontSize: 15, color: "#cccccc", lineHeight: 1.8 }}>
+          ATLAS IMS AI 助手是专为内审员设计的智能辅助工具。无论你是第一次参加内审的新手，还是有经验但审核不同部门/条款的审核员，AI 助手都可以帮你快速准备、现场指导、整理记录，大幅减少查资料、想问题、写描述的时间。支持 ISO 9001 / ISO 14001 / ISO 45001 / ISO 22301 以及 RBA VAP V8.0.2 全标准覆盖。
+        </div>
+      </div>
+      <SectionTitle sub="普通内审员的需求和审核组长完全不同">内审员 vs 审核组长：需求差异</SectionTitle>
+      <div style={{ overflowX: "auto", marginBottom: 28 }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontFamily: "Arial", fontSize: 15 }}>
+          <thead>
+            <tr style={{ background: "#1a1a1a" }}>
+              {["角色", "主要需求", "AI 帮助重点"].map(h => (
+                <th key={h} style={{ padding: "12px 18px", color: "#99FFFF", fontWeight: 700, textAlign: "left", borderBottom: "2px solid #2266FF", fontSize: 14 }}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            <tr style={{ background: "#0d1f3c", borderBottom: "1px solid #2a2a2a" }}>
+              <td style={{ padding: "14px 18px", color: "#99FFFF", fontWeight: 700 }}>内审员（你）</td>
+              <td style={{ padding: "14px 18px", color: "#cccccc" }}>如何审核、问什么问题、如何记录</td>
+              <td style={{ padding: "14px 18px", color: "#cccccc" }}>审核前准备 · 现场即时指导 · 记录整理</td>
+            </tr>
+            <tr style={{ background: "#131314", borderBottom: "1px solid #2a2a2a" }}>
+              <td style={{ padding: "14px 18px", color: "#82828B" }}>审核组长</td>
+              <td style={{ padding: "14px 18px", color: "#82828B" }}>如何汇总、如何报告、如何分类</td>
+              <td style={{ padding: "14px 18px", color: "#82828B" }}>报告生成 · 条款匹配 · PPT 制作</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <SectionTitle sub="内审员最需要 AI 帮助的 5 个核心场景">5 大核心功能</SectionTitle>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16, marginBottom: 28 }}>
+        {[
+          { num: "01", title: "生成审核问题清单", desc: "输入被审核部门和条款，AI 自动生成 10+ 条针对性问题，并告诉你要查哪些文件和记录", color: "#2266FF" },
+          { num: "02", title: "条款通俗解释", desc: "把复杂的 ISO/RBA 条款翻译成日常工作语言，告诉你实际要查什么，如何判断是否符合", color: "#00E5D1" },
+          { num: "03", title: "现场记录助手", desc: "用口语描述你看到的问题，AI 帮你整理成规范的客观证据，并判断 NC / OFI / Strength", color: "#6423FF" },
+          { num: "04", title: "中英文翻译", desc: "用中文记录审核发现，AI 自动生成专业英文版本，提供中英对照，方便录入系统", color: "#FCA91A" },
+          { num: "05", title: "标准要求解释", desc: "被审核方质疑时，AI 帮你用简单语言解释标准要求，增强审核的说服力和权威性", color: "#E5002F" },
+        ].map(f => (
+          <div key={f.num} style={{ background: "#131314", border: "1px solid #2a2a2a", borderRadius: 12, padding: "20px", borderTop: `3px solid ${f.color}` }}>
+            <div style={{ fontFamily: "Arial", fontWeight: 700, fontSize: 28, color: f.color, marginBottom: 8 }}>{f.num}</div>
+            <div style={{ fontFamily: "Arial", fontWeight: 700, fontSize: 16, color: "#fff", marginBottom: 8 }}>{f.title}</div>
+            <div style={{ fontFamily: "Arial", fontSize: 14, color: "#aaa", lineHeight: 1.65 }}>{f.desc}</div>
+          </div>
+        ))}
+      </div>
+      <SectionTitle sub="使用 AI 前后的时间对比">效率对比</SectionTitle>
+      <div style={{ overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontFamily: "Arial", fontSize: 15 }}>
+          <thead>
+            <tr style={{ background: "#1a1a1a" }}>
+              {["任务", "传统方式", "使用 AI", "节省时间"].map(h => (
+                <th key={h} style={{ padding: "12px 18px", color: "#99FFFF", fontWeight: 700, textAlign: "left", borderBottom: "2px solid #2266FF", fontSize: 14 }}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {[
+              { task: "条款匹配", trad: "15-20 分钟", ai: "1-2 分钟", save: "90%" },
+              { task: "发现陈述撰写", trad: "10-15 分钟", ai: "1 分钟", save: "93%" },
+              { task: "法律法规查询", trad: "20-30 分钟", ai: "2 分钟", save: "93%" },
+              { task: "PPT 报告制作", trad: "15-20 分钟", ai: "30 秒", save: "97%" },
+              { task: "单个发现总计", trad: "60-85 分钟", ai: "5 分钟", save: "94%", total: true },
+            ].map((r, i) => (
+              <tr key={i} style={{ background: r.total ? "#0d2a0d" : "#131314", borderBottom: "1px solid #2a2a2a" }}>
+                <td style={{ padding: "12px 18px", color: r.total ? "#00E5D1" : "#ccc", fontWeight: r.total ? 700 : 400 }}>{r.task}</td>
+                <td style={{ padding: "12px 18px", color: "#82828B" }}>{r.trad}</td>
+                <td style={{ padding: "12px 18px", color: r.total ? "#00E5D1" : "#ccc", fontWeight: r.total ? 700 : 400 }}>{r.ai}</td>
+                <td style={{ padding: "12px 18px" }}>
+                  <span style={{ background: "#003d1a", border: "1px solid #00E5D1", color: "#00E5D1", borderRadius: 6, padding: "2px 10px", fontWeight: 700, fontSize: 14 }}>{r.save}</span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function BeforeSection() {
+  return (
+    <div>
+      <SectionTitle sub="收到审核任务后，用这些 Prompt 快速做好准备">审核前准备</SectionTitle>
+      <div style={{ background: "#1a1a0a", border: "1px solid #FCA91A", borderRadius: 12, padding: "16px 20px", marginBottom: 28 }}>
+        <div style={{ fontFamily: "Arial", fontWeight: 700, fontSize: 15, color: "#FCA91A", marginBottom: 8 }}>审核前准备检查清单</div>
+        {["了解被审核部门的基本职能和流程", "明确本次审核的条款范围", "查阅上次审核的发现（如有）", "生成针对性的审核问题清单", "准备好要检查的文件和记录清单"].map((item, i) => (
+          <div key={i} style={{ fontFamily: "Arial", fontSize: 15, color: "#cccccc", padding: "4px 0", display: "flex", gap: 10 }}>
+            <span style={{ color: "#FCA91A" }}>☐</span>{item}
+          </div>
+        ))}
+      </div>
+      <PromptBox title="Prompt 1：快速了解审核任务（收到任务后第一件事）" tag="必用" tagColor="orange"
+        prompt={`我被分配审核 [部门名称] 的 [条款/过程]，请帮我快速了解：
+
+1. 这个条款/过程的核心要求是什么？
+2. 我应该准备哪些审核问题？
+3. 需要查看哪些文件和记录？
+4. 以往这个领域常见的问题有哪些？
+
+示例填写：
+我被分配审核 HR 部门的 ISO 9001 条款 7.2 能力管理，请帮我快速了解……`} />
+      <PromptBox title="Prompt 2：生成完整审核问题清单（审核前最重要的准备）" tag="强烈推荐" tagColor="blue"
+        prompt={`我要审核 [部门名称] 的 [过程/条款]，请帮我生成审核问题清单。
+
+审核信息：
+- 被审核部门：[如：文件控制部门 / 生产部门 / HR 部门]
+- 审核条款：[如：ISO 9001 条款 4.2 文件控制 / ISO 45001 条款 6.1 风险评估]
+- 审核重点：[可选，如：上次审核发现的问题 / 新员工培训 / 设备管理]
+
+请提供：
+1. 具体的审核问题（至少 10 个）
+2. 每个问题要查看的证据类型
+3. 常见的不符合项示例`} />
+      <PromptBox title="Prompt 3：条款通俗解释（看不懂标准时使用）" tag="新手必用" tagColor="green"
+        prompt={`请用简单的语言解释以下条款，并告诉我审核时应该看什么：
+
+条款：[完整条款内容或条款编号]
+例如：ISO 14001:2015 条款 6.1.2 环境因素识别
+例如：ISO 22301:2019 条款 8.4 业务连续性计划
+
+请提供：
+1. 通俗易懂的条款解释（用实际工作场景举例）
+2. 审核时要检查的具体内容（文件、记录、现场）
+3. 如何判断是否符合要求
+4. 常见的不符合项案例`} />
+      <SectionTitle sub="客观证据写得好，审核发现才有说服力">客观证据撰写要点</SectionTitle>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 24 }}>
+        <div style={{ background: "#0d2a0d", border: "1px solid #00E5D1", borderRadius: 12, padding: "18px 20px" }}>
+          <div style={{ fontFamily: "Arial", fontWeight: 700, fontSize: 15, color: "#00E5D1", marginBottom: 12 }}>好的客观证据</div>
+          {["包含时间、地点、涉及人员", "描述具体问题，可验证", "中英文均可，AI 自动处理翻译", "基于实际观察、记录、文件"].map((t, i) => (
+            <div key={i} style={{ fontFamily: "Arial", fontSize: 14, color: "#ccc", padding: "3px 0" }}>· {t}</div>
+          ))}
+          <div style={{ marginTop: 12, background: "#0a1a0a", borderRadius: 8, padding: "10px 14px", fontFamily: "Arial", fontSize: 13, color: "#aaa", lineHeight: 1.6 }}>
+            <span style={{ color: "#00E5D1", fontWeight: 700 }}>示例：</span> 「2025年5月15日，在生产车间发现叉车警示标识仅有英文，缺少中文翻译，不符合双语标识要求。」
+          </div>
+        </div>
+        <div style={{ background: "#2a0a0a", border: "1px solid #E5002F", borderRadius: 12, padding: "18px 20px" }}>
+          <div style={{ fontFamily: "Arial", fontWeight: 700, fontSize: 15, color: "#ff8099", marginBottom: 12 }}>避免这样写</div>
+          {["包含主观判断（「我认为」「可能」）", "描述模糊，无法核实", "只写结论，没有具体事实", "使用情绪化语言"].map((t, i) => (
+            <div key={i} style={{ fontFamily: "Arial", fontSize: 14, color: "#ccc", padding: "3px 0" }}>· {t}</div>
+          ))}
+          <div style={{ marginTop: 12, background: "#1a0a0a", borderRadius: 8, padding: "10px 14px", fontFamily: "Arial", fontSize: 13, color: "#aaa", lineHeight: 1.6 }}>
+            <span style={{ color: "#ff8099", fontWeight: 700 }}>示例：</span> 「标识可能不够清楚。」
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DuringSection() {
+  return (
+    <div>
+      <SectionTitle sub="现场发现问题时，即时使用这些 Prompt">审核中使用</SectionTitle>
+      <PromptBox title="Prompt 4：现场发现问题----不确定是否算问题" tag="现场必用" tagColor="green"
+        prompt={`我在审核现场看到以下情况，请帮我判断这算不算问题：
+
+我看到的情况：[用口语化描述，可以是中文]
+
+例如：
+· 「设备上的标签日期过期了」
+· 「员工说没有收到过这个培训」
+· 「文件柜里的文件版本和系统里不一样」
+
+请帮我：
+1. 判断这是否构成不符合项
+2. 分类：NC（不符合）/ OFI（改进机会）/ Strength（优势）
+3. 建议可能适用的条款
+4. 整理成规范的客观证据描述`} />
+      <PromptBox title="Prompt 5：不知道如何规范描述（现场笔记整理）" tag="现场必用" tagColor="green"
+        prompt={`我发现了一个问题，但不知道怎么用规范的语言描述，请帮我整理：
+
+我的口语记录：[直接写你看到/听到的情况，不用担心格式]
+
+请帮我：
+1. 整理成规范的客观证据描述（中文）
+2. 翻译成英文（用于系统录入）
+3. 提供中英文对照版本`} />
+      <PromptBox title="Prompt 6：被审核方质疑----需要解释标准要求" tag="现场使用" tagColor="purple"
+        prompt={`被审核方正在质疑我的审核发现，请帮我解释标准要求：
+
+审核的条款：[条款编号和名称]
+我发现的问题：[问题描述]
+被审核方的质疑：[他们说的话]
+
+例如：
+条款：ISO 9001 条款 7.5 文件化信息
+我发现：共享盘里的文件没有版本号和审批记录
+质疑：「我们的文件大家都能访问，为什么不符合？」
+
+请帮我用简单易懂的语言解释标准的具体要求。`} />
+      <SectionTitle sub="快速判断发现类型">NC / OFI / Strength 判断指南</SectionTitle>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, marginBottom: 28 }}>
+        {[
+          { type: "NC 不符合项", color: "#E5002F", bg: "#2a0a0a", border: "#E5002F", desc: "标准要求明确规定必须做到的事情，但实际没有做到，或者做了但没有证据。", example: "校准记录过期、培训记录缺签名、应急设备未定期检查" },
+          { type: "OFI 改进机会", color: "#FCA91A", bg: "#3d2000", border: "#FCA91A", desc: "标准要求已经满足，但还有进一步改善的空间，可以做得更好。", example: "文件管理流程可以更自动化、培训评估方式可以更系统化" },
+          { type: "Strength 优势", color: "#00E5D1", bg: "#003d35", border: "#00E5D1", desc: "做得特别好的地方，超出标准要求，值得表扬或在其他部门推广。", example: "建立了超出要求的双重核查机制、培训记录管理特别规范" },
+        ].map(f => (
+          <div key={f.type} style={{ background: f.bg, border: `1px solid ${f.border}`, borderRadius: 12, padding: "18px 20px" }}>
+            <div style={{ fontFamily: "Arial", fontWeight: 700, fontSize: 16, color: f.color, marginBottom: 10 }}>{f.type}</div>
+            <div style={{ fontFamily: "Arial", fontSize: 14, color: "#ccc", lineHeight: 1.65, marginBottom: 10 }}>{f.desc}</div>
+            <div style={{ fontFamily: "Arial", fontSize: 13, color: "#888", lineHeight: 1.5 }}>
+              <span style={{ color: f.color, fontWeight: 700 }}>常见示例：</span> {f.example}
+            </div>
+          </div>
+        ))}
+      </div>
+      <SectionTitle sub="手机/平板也能高效审核">移动审核建议</SectionTitle>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 14 }}>
+        {[
+          { step: "01", title: "审核前", tip: "将常用 Prompt 模板保存在手机备忘录，现场直接粘贴使用" },
+          { step: "02", title: "发现问题时", tip: "用语音转文字快速记录客观证据（中英文均可），发给 AI 整理" },
+          { step: "03", title: "休息时间", tip: "批量将多个口语记录发给 AI，统一整理成规范描述" },
+          { step: "04", title: "审核结束前", tip: "让 AI 帮你检查所有记录，确认内容完整、描述规范" },
+        ].map(s => (
+          <div key={s.step} style={{ background: "#131314", border: "1px solid #2a2a2a", borderRadius: 12, padding: "18px 20px" }}>
+            <div style={{ fontFamily: "Arial", fontWeight: 700, fontSize: 24, background: accentGrad, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", marginBottom: 8 }}>{s.step}</div>
+            <div style={{ fontFamily: "Arial", fontWeight: 700, fontSize: 16, color: "#fff", marginBottom: 6 }}>{s.title}</div>
+            <div style={{ fontFamily: "Arial", fontSize: 14, color: "#aaa", lineHeight: 1.65 }}>{s.tip}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function AfterSection() {
+  return (
+    <div>
+      <SectionTitle sub="审核结束后，用 AI 快速整理所有记录">审核后整理</SectionTitle>
+      <PromptBox title="Prompt 7：批量整理现场笔记" tag="审核后必用" tagColor="orange"
+        prompt={`请帮我把以下现场记录整理成规范的审核发现：
+
+[粘贴你的现场笔记，可以是杂乱的中文口语记录]
+
+例如：
+· 看到3号设备校准标签过期了，上面写的是2024年10月，今天5月了
+· 问了小李，她说没有收到过EHS培训通知
+· 文件柜里有两个版本的操作规程，一个是Rev3一个是Rev4
+
+请为每一条：
+1. 整理成规范的客观证据描述
+2. 建议适用条款
+3. 判断 NC / OFI / Strength
+4. 提供英文版本`} />
+      <PromptBox title="Prompt 8：中英文翻译（录入系统前使用）" tag="必用" tagColor="blue"
+        prompt={`请将以下中文审核发现翻译成简单易懂清晰的英文：
+
+[在此粘贴中文审核发现内容]
+
+要求：
+· 使用简单的英文单词和句式，避免过于复杂的表达
+· 保持专业性和准确性，符合 ISO 审核发现的语言风格
+· 提供中英文对照版本，方便核对
+· 如果有多条发现，请逐条翻译并编号`} />
+      <PromptBox title="Prompt 9：提交前最终检查" tag="提交前" tagColor="purple"
+        prompt={`我即将提交以下审核发现，请帮我检查是否完整规范：
+
+[粘贴你准备提交的审核发现内容]
+
+请检查：
+1. 客观证据描述是否具体、可验证
+2. 条款引用是否正确
+3. 发现分类（NC/OFI/Strength）是否合适
+4. 英文翻译是否准确
+5. 是否有遗漏或需要补充的信息`} />
+      <SectionTitle sub="提交前逐项确认">提交前检查清单</SectionTitle>
+      <div style={{ background: "#1F1F1F", border: "1px solid #2a2a2a", borderRadius: 12, padding: "20px 24px" }}>
+        {[
+          { item: "每条发现都有具体的客观证据（时间、地点、文件编号、人员）", cat: "内容完整性" },
+          { item: "已正确引用适用的 ISO/RBA 标准条款", cat: "条款准确性" },
+          { item: "正确分类为 NC / OFI / Strength", cat: "分类正确性" },
+          { item: "英文版本已生成并核对（用于系统录入）", cat: "语言要求" },
+          { item: "没有主观判断语言（如「我认为」「可能」）", cat: "客观性" },
+          { item: "已与被审核方当面确认发现内容", cat: "沟通确认" },
+          { item: "所有记录已整理并准备提交给审核组长", cat: "提交准备" },
+        ].map((c, i) => (
+          <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 12, padding: "10px 0", borderBottom: i < 6 ? "1px solid #2a2a2a" : "none" }}>
+            <span style={{ color: "#2266FF", fontSize: 18, flexShrink: 0, marginTop: 1 }}>☐</span>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontFamily: "Arial", fontSize: 15, color: "#ccc" }}>{c.item}</div>
+              <div style={{ fontFamily: "Arial", fontSize: 12, color: "#555", marginTop: 2 }}>{c.cat}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ExamplesSection() {
+  const convos = [
+    {
+      title: "场景 1：新手内审员----不知道从哪里开始",
+      tag: "审核前准备", tagColor: "blue",
+      messages: [
+        { role: "内审员", isAi: false, text: "我第一次参加内审，被分配审核 HR 部门的 ISO 9001 条款 7.2 能力管理，完全不知道从哪里开始……" },
+        { role: "AI 助手", isAi: true, text: "我来帮您准备！针对 HR 部门的能力管理审核，需要关注以下方面：\n\n【条款核心要求】\n组织需要确定员工具备必要的能力，并提供培训或采取其他措施来获得所需能力。\n\n【审核问题清单（示例）】\n1. 如何确定各岗位所需的能力要求？（查看：岗位说明书、能力矩阵）\n2. 如何评估新员工是否具备所需能力？（查看：招聘记录、面试评估）\n3. 发现能力差距时如何处理？（查看：培训计划、培训记录）\n4. 培训后如何验证有效性？（查看：培训评估记录、考核记录）\n5. 如何保存能力证据？（查看：学历证书、资格证书）\n\n【常见不符合项】\n· 培训记录缺少签名或日期\n· 没有培训有效性评估\n· 岗位能力要求不明确\n\n需要我继续详细解释任何一个问题吗？" },
+      ],
+    },
+    {
+      title: "场景 2：现场发现问题----不确定是否算 NC",
+      tag: "现场使用", tagColor: "green",
+      messages: [
+        { role: "内审员", isAi: false, text: "我在生产现场看到一个灭火器的检查标签上最后检查日期是 2024 年 10 月，现在都 2025 年 5 月了，这算问题吗？" },
+        { role: "AI 助手", isAi: true, text: "是的，这是一个明确的不符合项！\n\n【问题分析】\n· 灭火器超过 6 个月未检查，不符合应急设备定期检查要求\n· 适用条款：ISO 45001 条款 8.2 应急准备和响应\n\n【规范的客观证据描述（中文）】\n2025 年 5 月 15 日，在生产车间 A 区发现 1 号灭火器（编号：FE-001）的检查标签显示最后检查日期为 2024 年 10 月，超过规定的月度检查周期，未按照应急设备管理程序要求进行定期检查。\n\n【英文版本】\nOn May 15, 2025, fire extinguisher No. FE-001 in Production Area A was found with an inspection tag showing the last inspection date as October 2024, exceeding the required monthly inspection cycle.\n\n【建议分类】：Non-Conformance (NC)" },
+      ],
+    },
+    {
+      title: "场景 3：被审核方质疑----不知道如何解释标准",
+      tag: "现场使用", tagColor: "green",
+      messages: [
+        { role: "内审员", isAi: false, text: "被审核方说：『我们的文件都在共享盘里，大家都能访问，为什么说不符合文件控制要求？』我该怎么解释？" },
+        { role: "AI 助手", isAi: true, text: "这是一个很常见的质疑！让我帮您解释标准要求：\n\n【ISO 9001 条款 7.5 文件控制核心要求】\n文件控制不仅仅是『能访问』，还需要：\n✅ 适当的标识（文件编号、版本、日期）\n✅ 适当的评审和批准\n✅ 防止非预期使用过期文件\n✅ 明确谁有权修改\n\n【您可以这样解释】\n『共享盘确实方便访问，但文件控制还需要确保：\n· 如何防止有人误用旧版本？\n· 如何确保文件经过审批才发布？\n· 如何追溯文件的修改历史？』\n\n【建议追问】\n1. 共享盘里的文件如何区分受控和非受控？\n2. 文件更新后如何通知使用者？\n3. 旧版本文件如何处理？" },
+      ],
+    },
+  ];
+
+  const scenarios = [
+    { title: "文件控制问题", tag: "ISO 9001 / 7.5", tagColor: "blue", prompt: "过程区域：文件控制\n我发现：[具体文件名称] 缺少作者签名和日期，不符合受控文件要求。\n\n请帮我：\n1. 整理成规范的客观证据描述\n2. 匹配适用的 ISO 条款\n3. 判断是 NC 还是 OFI\n4. 提供英文翻译" },
+    { title: "设备管理问题", tag: "ISO 9001 / 7.1.5", tagColor: "blue", prompt: "过程区域：设备管理\n我发现：设备 [编号] 的校准记录已过期（最后校准日期 [具体日期]），超出预防性维护周期。\n\n请帮我整理成规范的客观证据描述，并提供中英文对照版本。" },
+    { title: "环境因素识别", tag: "ISO 14001 / 6.1.2", tagColor: "green", prompt: "过程区域：环境管理\n我发现：[部门] 的环境因素识别清单中缺少资源和能源消耗因素的评估。\n\n请告诉我标准的具体要求，帮我判断这是什么类型的发现（NC/OFI）。" },
+    { title: "业务连续性管理", tag: "ISO 22301 / 8.4", tagColor: "purple", prompt: "过程区域：业务连续性管理\n我发现：[部门] 的业务连续性计划（BCP）中 [具体问题，如：RTO未定义 / 演练记录缺失 / 关键资源未识别]。\n\n请帮我：\n1. 整理成规范的客观证据描述\n2. 匹配适用的 ISO 22301 条款\n3. 判断是 NC 还是 OFI" },
+    { title: "职业健康安全", tag: "ISO 45001 / 8.1", tagColor: "purple", prompt: "过程区域：职业健康安全\n我发现：[现场看到的具体情况，用口语描述即可]\n\n请帮我：\n1. 整理成规范的客观证据描述\n2. 建议适用的条款\n3. 判断 NC / OFI / Strength" },
+    { title: "劳工权益（RBA）", tag: "RBA VAP V8.0.2", tagColor: "orange", prompt: "审核标准：RBA VAP V8.0.2\n过程区域：劳工权益\n我发现：[具体情况，涉及工作时间 / 工资福利 / 不歧视等]\n\n请匹配 RBA 条款并帮我整理规范的审核发现描述。" },
+    { title: "中英文翻译", tag: "翻译专用", tagColor: "blue", prompt: "请将以下中文审核发现翻译成简单易懂清晰的英文：\n\n[在此粘贴中文审核发现内容]\n\n要求：使用简单英文，保持专业性，提供中英文对照版本。" },
+  ];
+
+  return (
+    <div>
+      <SectionTitle sub="真实的问答对话，帮你了解如何使用 AI 助手">真实对话示例</SectionTitle>
+      {convos.map((c, i) => (
+        <div key={i} style={{ background: "#131314", border: "1px solid #2a2a2a", borderRadius: 12, padding: "20px 24px", marginBottom: 24 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20, flexWrap: "wrap" }}>
+            <span style={{ fontFamily: "Arial", fontWeight: 700, fontSize: 17, color: "#fff" }}>{c.title}</span>
+            <Tag color={c.tagColor}>{c.tag}</Tag>
+          </div>
+          {c.messages.map((m, j) => <ChatBubble key={j} role={m.role} text={m.text} isAi={m.isAi} />)}
+        </div>
+      ))}
+      <SectionTitle sub="针对不同审核场景的即用 Prompt">常见场景快捷 Prompt</SectionTitle>
+      {scenarios.map((s, i) => <PromptBox key={i} title={s.title} tag={s.tag} tagColor={s.tagColor} prompt={s.prompt} />)}
+    </div>
+  );
+}
+
+function QuickRefSection() {
+  const phases = [
+    {
+      phase: "审核前 · 3 步骤", color: "#2266FF",
+      items: [
+        { label: "Step 1", text: "问 AI：「我要审核 [部门][条款]，请生成审核问题清单」" },
+        { label: "Step 2", text: "问 AI：「请解释 [条款] 的审核要点和常见问题」" },
+        { label: "Step 3", text: "问 AI：「[部门] 以往的审核发现有哪些，我需要重点关注什么」" },
+      ],
+    },
+    {
+      phase: "审核中 · 3 个快捷 Prompt", color: "#00E5D1",
+      items: [
+        { label: "发现问题时", text: "「我看到 [情况]，这算不算问题？请告诉我是 NC / OFI / Strength」" },
+        { label: "不会描述时", text: "「请帮我把 [口语描述] 整理成规范的客观证据，并提供英文版本」" },
+        { label: "被质疑时", text: "「被审核方质疑 [具体情况]，请帮我用简单语言解释 [条款] 的要求」" },
+      ],
+    },
+    {
+      phase: "审核后 · 2 步骤", color: "#6423FF",
+      items: [
+        { label: "Step 1", text: "问 AI：「请整理我的现场记录：[粘贴笔记内容]，每条给出 NC/OFI 分类和英文翻译」" },
+        { label: "Step 2", text: "问 AI：「请帮我检查这些审核发现是否完整规范，提交前最终确认」" },
+      ],
+    },
+  ];
+
+  return (
+    <div>
+      <SectionTitle sub="打印出来放在审核现场，随时查阅">审核员速查卡</SectionTitle>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16, marginBottom: 32 }}>
+        {phases.map((p, i) => (
+          <div key={i} style={{ background: "#131314", border: `1px solid ${p.color}`, borderRadius: 12, overflow: "hidden" }}>
+            <div style={{ background: p.color, padding: "12px 20px" }}>
+              <span style={{ fontFamily: "Arial", fontWeight: 700, fontSize: 15, color: "#000" }}>{p.phase}</span>
+            </div>
+            <div style={{ padding: "16px 20px" }}>
+              {p.items.map((item, j) => (
+                <div key={j} style={{ display: "flex", gap: 12, marginBottom: j < p.items.length - 1 ? 14 : 0, paddingBottom: j < p.items.length - 1 ? 14 : 0, borderBottom: j < p.items.length - 1 ? "1px solid #2a2a2a" : "none" }}>
+                  <span style={{ fontFamily: "Arial", fontWeight: 700, fontSize: 12, color: p.color, flexShrink: 0, marginTop: 2, whiteSpace: "nowrap" }}>{item.label}</span>
+                  <span style={{ fontFamily: "Arial", fontSize: 14, color: "#ccc", lineHeight: 1.6 }}>{item.text}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+      <SectionTitle sub="使用前务必了解">5 个重要注意事项</SectionTitle>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 14, marginBottom: 32 }}>
+        {[
+          { num: "①", title: "语言灵活", desc: "客观证据可以用中文描述，AI 自动处理翻译，无需担心语言问题", color: "#2266FF" },
+          { num: "②", title: "细节越多越好", desc: "提供的信息越具体（时间、地点、编号、人名），AI 生成的描述就越准确", color: "#00E5D1" },
+          { num: "③", title: "结果需要核实", desc: "AI 提供的条款建议和描述仍需你根据实际情况判断和确认", color: "#6423FF" },
+          { num: "④", title: "随时可以追问", desc: "如果 AI 的回答不够清楚，直接说「请详细解释」或「给我更多示例」", color: "#FCA91A" },
+          { num: "⑤", title: "不用担心提问方式", desc: "用日常中文提问即可，不需要按照特定格式，AI 能理解你的意思", color: "#E5002F" },
+        ].map(n => (
+          <div key={n.num} style={{ background: "#131314", border: "1px solid #2a2a2a", borderRadius: 12, padding: "18px 20px" }}>
+            <div style={{ fontFamily: "Arial", fontWeight: 700, fontSize: 24, color: n.color, marginBottom: 8 }}>{n.num}</div>
+            <div style={{ fontFamily: "Arial", fontWeight: 700, fontSize: 16, color: "#fff", marginBottom: 6 }}>{n.title}</div>
+            <div style={{ fontFamily: "Arial", fontSize: 14, color: "#aaa", lineHeight: 1.65 }}>{n.desc}</div>
+          </div>
+        ))}
+      </div>
+      <SectionTitle sub="不知道怎么问？用这些万能句式开始">遇到困难时怎么问 AI</SectionTitle>
+      <div style={{ background: "#1F1F1F", border: "1px solid #2a2a2a", borderRadius: 12, padding: "20px 24px" }}>
+        {[
+          { situation: "不知道从哪里开始", prompt: "「我要审核 [部门] 的 [条款]，请帮我制定审核计划，我是第一次审核这个领域」" },
+          { situation: "不理解某个条款", prompt: "「请用简单的语言解释 [条款名称]，举一个实际工作中的例子」" },
+          { situation: "发现了问题但不确定", prompt: "「我看到了 [情况]，这符合 / 不符合哪个条款的要求？」" },
+          { situation: "不知道如何写描述", prompt: "「请帮我把以下口语记录整理成规范的审核发现：[描述]」" },
+          { situation: "需要解释给被审核方", prompt: "「请用被审核方能理解的语言解释为什么 [问题] 不符合 [条款] 的要求」" },
+          { situation: "需要录入英文系统", prompt: "「请将以下中文发现翻译成专业英文，提供中英对照：[中文内容]」" },
+        ].map((r, i) => (
+          <div key={i} style={{ display: "flex", gap: 16, padding: "12px 0", borderBottom: i < 5 ? "1px solid #2a2a2a" : "none", flexWrap: "wrap" }}>
+            <div style={{ fontFamily: "Arial", fontWeight: 700, fontSize: 14, color: "#2266FF", minWidth: 160, flexShrink: 0 }}>{r.situation}</div>
+            <div style={{ fontFamily: "Arial", fontSize: 14, color: "#ccc", lineHeight: 1.65, flex: 1 }}>{r.prompt}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default function App() {
+  const [active, setActive] = useState("overview");
+
+  const renderSection = () => {
+    if (active === "overview") return <OverviewSection />;
+    if (active === "before") return <BeforeSection />;
+    if (active === "during") return <DuringSection />;
+    if (active === "after") return <AfterSection />;
+    if (active === "examples") return <ExamplesSection />;
+    if (active === "quickref") return <QuickRefSection />;
+    return null;
+  };
+
+  return (
+    <div style={{ background: "#000", minHeight: "100vh", fontFamily: "Arial" }}>
+      <div style={{ background: "#0a0a0a", borderBottom: "1px solid #1a1a1a", padding: "0 32px" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 16, padding: "20px 0 16px" }}>
+            <div style={{ width: 40, height: 40, borderRadius: 10, background: accentGrad, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, fontSize: 18, color: "#000", flexShrink: 0 }}>A</div>
+            <div>
+              <div style={{ fontFamily: "Arial", fontWeight: 700, fontSize: 20, color: "#fff" }}>内审员 AI 助手使用指南</div>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 3, flexWrap: "wrap" }}>
+                <span style={{ fontFamily: "Arial", fontSize: 13, color: "#555" }}>ATLAS IMS Agent · ISO 9001 / 14001 / 45001 / 22301 · RBA VAP V8.0.2</span>
+                <span style={{ color: "#333", fontSize: 12 }}>·</span>
+                <span style={{ fontFamily: "Arial", fontSize: 13, color: "#555", fontStyle: "italic" }}>by Elena Zhu</span>
+              </div>
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 4, overflowX: "auto" }}>
+            {[
+              { id: "overview", label: "功能概览" },
+              { id: "before", label: "审核前准备" },
+              { id: "during", label: "审核中使用" },
+              { id: "after", label: "审核后整理" },
+              { id: "examples", label: "真实对话示例" },
+              { id: "quickref", label: "速查卡" },
+            ].map(n => (
+              <button key={n.id} onClick={() => setActive(n.id)}
+                style={{ background: "transparent", border: "none", borderBottom: active === n.id ? "2px solid #2266FF" : "2px solid transparent", color: active === n.id ? "#99FFFF" : "#555", fontFamily: "Arial", fontWeight: active === n.id ? 700 : 400, fontSize: 15, padding: "10px 18px", cursor: "pointer", whiteSpace: "nowrap", transition: "color 0.15s" }}>
+                {n.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "36px 32px 60px" }}>
+        {renderSection()}
+      </div>
+    </div>
+  );
+}
+
+;(function __autoMount(){
+  var _C=exports.default;
+  if(!_C){
+    var _keys=Object.keys(exports);
+    for(var i=0;i<_keys.length;i++){
+      if(_keys[i]!=="__esModule"&&typeof exports[_keys[i]]==="function"){_C=exports[_keys[i]];break}
+    }
+  }
+  if(!_C&&typeof App!=="undefined")_C=App;
+  if(_C)ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(_C));
+})();
+</script>
+<script>(function(){var io=new IntersectionObserver(function(e){e.forEach(function(x){if(x.isIntersecting)x.target.classList.add("v")})},{threshold:.05});function observeAll(r){r.querySelectorAll(".f:not(.v)").forEach(function(el){io.observe(el)})}observeAll(document);new MutationObserver(function(m){for(var i=0;i<m.length;i++)for(var j=0;j<m[i].addedNodes.length;j++){var n=m[i].addedNodes[j];if(n.nodeType===1){if(n.classList&&n.classList.contains("f"))io.observe(n);if(n.querySelectorAll)observeAll(n)}}}).observe(document.body,{childList:true,subtree:true})})();</script>
+</body>
+</html>
